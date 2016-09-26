@@ -1,0 +1,6 @@
+{
+  "name": "Experimental Websocket Server",
+  "description": "Experimental Websocket Server",
+  "repository": "https://github.com/shaunanoordin/experimental-websocket-server/",
+  "image": "heroku/nodejs"
+}
