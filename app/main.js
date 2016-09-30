@@ -44,7 +44,7 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(__dirname) {"use strict";
+	"use strict";
 
 	/*  
 	Experimental Websocket Server
@@ -57,6 +57,7 @@
 	 */
 
 	var express = __webpack_require__(1);
+	var path = __webpack_require__(2);
 	var server = express();
 
 	var SERVER = {
@@ -64,9 +65,7 @@
 	};
 
 	server.set("port", process.env.PORT || SERVER.PORT);
-	server.use(express.static("/web"));
-
-	console.log(__dirname + "/web");
+	server.use(express.static("web"));
 
 	server.listen(server.get("port"), function onStart(err) {
 	  if (err) {
@@ -75,13 +74,18 @@
 	    console.info("Server ready on port " + server.get("port"));
 	  }
 	});
-	/* WEBPACK VAR INJECTION */}.call(exports, "/"))
 
 /***/ },
 /* 1 */
 /***/ function(module, exports) {
 
 	module.exports = require("express");
+
+/***/ },
+/* 2 */
+/***/ function(module, exports) {
+
+	module.exports = require("path");
 
 /***/ }
 /******/ ]);
