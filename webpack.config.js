@@ -17,6 +17,7 @@ module.exports = {
   },
   externals: {
     express: "require(\"express\")",
+    ws: "require(\"ws\")",
   },
   target: "node",
 };

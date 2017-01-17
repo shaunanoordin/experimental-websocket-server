@@ -2,28 +2,43 @@
 Experimental Websocket Server
 =============================
 
-Starter tempalte for JS projects
-
-(Shaun A. Noordin || shaunanoordin.com || 20160509)
+(Shaun A. Noordin || shaunanoordin.com || 20170117)
 ********************************************************************************
  */
 
-var express = require("express");
-var path = require("path");
-var server = express();
+//==============================================================================
+var Express = require("express");
+var HTTP_SERVER = {
+  PORT: (process.env.PORT || 3000)
+};
+var httpServer = Express();
 
- 
-var SERVER = {
-  PORT: 3000
-}
+httpServer.use(Express.static("web"));
 
-server.set("port", (process.env.PORT || SERVER.PORT));
-server.use(express.static("web"));
-
-server.listen(server.get("port"), function onStart(err) {
+httpServer.listen(HTTP_SERVER.PORT, function onStart(err) {
   if (err) {
     console.log(err);
   } else {
-    console.info("Server ready on port " + server.get("port"));
+    console.info("HTTP Server ready on port " + HTTP_SERVER.PORT);
   }
 });
+
+//==============================================================================
+
+//==============================================================================
+var WebSocketServer = require("ws").Server;
+var WS_SERVER = {
+  PORT: (process.env.PORT || 4000)
+};
+var wsServer = new WebSocketServer({ port: WS_SERVER.PORT });
+
+wsServer.on("connection", (ws) => {
+  ws.send("Welcome to the WebSocket Server.");
+  
+  ws.on("message", (msg) => {
+    ws.send(msg + " " + msg);
+  });
+});
+
+console.info("WS Server ready on port " + WS_SERVER.PORT);
+//==============================================================================

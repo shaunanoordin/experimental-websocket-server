@@ -50,30 +50,46 @@
 	Experimental Websocket Server
 	=============================
 
-	Starter tempalte for JS projects
-
-	(Shaun A. Noordin || shaunanoordin.com || 20160509)
+	(Shaun A. Noordin || shaunanoordin.com || 20170117)
 	********************************************************************************
 	 */
 
-	var express = __webpack_require__(1);
-	var path = __webpack_require__(2);
-	var server = express();
-
-	var SERVER = {
-	  PORT: 3000
+	//==============================================================================
+	var Express = __webpack_require__(1);
+	var HTTP_SERVER = {
+	  PORT: process.env.PORT || 3000
 	};
+	var httpServer = Express();
 
-	server.set("port", process.env.PORT || SERVER.PORT);
-	server.use(express.static("web"));
+	httpServer.use(Express.static("web"));
 
-	server.listen(server.get("port"), function onStart(err) {
+	httpServer.listen(HTTP_SERVER.PORT, function onStart(err) {
 	  if (err) {
 	    console.log(err);
 	  } else {
-	    console.info("Server ready on port " + server.get("port"));
+	    console.info("HTTP Server ready on port " + HTTP_SERVER.PORT);
 	  }
 	});
+
+	//==============================================================================
+
+	//==============================================================================
+	var WebSocketServer = __webpack_require__(2).Server;
+	var WS_SERVER = {
+	  PORT: process.env.PORT || 4000
+	};
+	var wsServer = new WebSocketServer({ port: WS_SERVER.PORT });
+
+	wsServer.on("connection", function (ws) {
+	  ws.send("Welcome to the WebSocket Server.");
+
+	  ws.on("message", function (msg) {
+	    ws.send(msg + " " + msg);
+	  });
+	});
+
+	console.info("WS Server ready on port " + WS_SERVER.PORT);
+	//==============================================================================
 
 /***/ },
 /* 1 */
@@ -85,7 +101,7 @@
 /* 2 */
 /***/ function(module, exports) {
 
-	module.exports = require("path");
+	module.exports = require("ws");
 
 /***/ }
 /******/ ]);
