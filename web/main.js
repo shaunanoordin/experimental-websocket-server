@@ -28,9 +28,11 @@ var App = function () {
     this.input.value = "";
     this.print("&gt; " + inputValue);
     
-    if (arrInputValues[0] === "connect") {
+    if (!arrInputValues[0] || arrInputValues[0] === "") return;  //No command? Do nothing.
+    
+    if (arrInputValues[0].match(/\/connect/ig)) {
       this.connect(arrInputValues[1]);
-    } else if (arrInputValues[0] === "disconnect") {
+    } else if (arrInputValues[0].match(/\/disconnect/ig)) {
       this.disconnect();
     } else {
       this.send(inputValue);
