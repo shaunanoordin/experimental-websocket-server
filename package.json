@@ -19,7 +19,8 @@
     
     "babel-core": "6.9.1",
     "babel-loader": "6.2.4", 
-    "babel-preset-es2015": "6.9.0"
+    "babel-preset-es2015": "6.9.0",
+    "stylus": "0.54.5"
   },
   "scripts": {
     "start": "webpack && stylus src -o app && node ./app/main.js",
