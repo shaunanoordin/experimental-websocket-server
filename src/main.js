@@ -1,6 +1,6 @@
 /*  
-Starter JS
-==========
+Experimental Websocket Server
+=============================
 
 Starter tempalte for JS projects
 
@@ -8,28 +8,22 @@ Starter tempalte for JS projects
 ********************************************************************************
  */
 
-import {ImportExample} from "./importExample.js";
+var express = require("express");
+var path = require("path");
+var server = express();
 
-/*  Primary App Class
- */
-//==============================================================================
-class App {
-  constructor() {
-    let importExample = new ImportExample("HI THERE");
-    
-    this.console = document.getElementById("console");
-    this.console.innerHTML =
-      "This is a starter template for JS projects. <br>" +
-      importExample.getText();
-  }
+ 
+var SERVER = {
+  PORT: 3000
 }
-//==============================================================================
 
-/*  Initialisations
- */
-//==============================================================================
-var app;
-window.onload = function() {
-  window.app = new App();
-};
-//==============================================================================
+server.set("port", (process.env.PORT || SERVER.PORT));
+server.use(express.static("web"));
+
+server.listen(server.get("port"), function onStart(err) {
+  if (err) {
+    console.log(err);
+  } else {
+    console.info("Server ready on port " + server.get("port"));
+  }
+});
