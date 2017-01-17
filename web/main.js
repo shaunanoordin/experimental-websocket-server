@@ -6,35 +6,42 @@ Experimental WebSocket Client
 ********************************************************************************
  */
 
+DEFAULT_WEBSOCKET_URL = "ws://localhost:4000";
+
 /*  Primary App Class
  */
 //==============================================================================
-
 var App = function () {
   //Class Variables
   //----------------------------------------------------------------
   this.output = document.getElementById("output");
   this.input = document.getElementById("input");
   this.websocket = null;
-  this.websocketServerURL = "ws://localhost:4000";
+  this.websocketServerURL = "";
   //----------------------------------------------------------------
   
   //Command Parser
   //----------------------------------------------------------------
   this.execute = function execute() {
-    var inputValue = this.input.value;
+    var inputValue = this.input.value.trim();
+    var arrInputValues = inputValue.replace(/\ +/ig, " ").split(" ");
     this.input.value = "";
     this.print("&gt; " + inputValue);
     
-    if (inputValue === "hi") this.connect();
-    else if (inputValue === "bye") this.disconnect();
-    else this.send(inputValue);
+    if (arrInputValues[0] === "connect") {
+      this.connect(arrInputValues[1]);
+    } else if (arrInputValues[0] === "disconnect") {
+      this.disconnect();
+    } else {
+      this.send(inputValue);
+    }
   }.bind(this);
   //----------------------------------------------------------------
   
   //WebSocket Interface
   //----------------------------------------------------------------
-  this.connect = function connect() {
+  this.connect = function connect(url) {
+    this.websocketServerURL = (!url || url === "") ? DEFAULT_WEBSOCKET_URL : url;
     if (this.websocket) {
       this.print("Connection already exists.");
       return;
@@ -45,6 +52,7 @@ var App = function () {
     }.bind(this);
     this.websocket.onclose = function (e) {
       this.print("Disconnected from " + this.websocketServerURL);
+      this.websocketServerURL = "";
       this.websocket = null;
     }.bind(this);
     this.websocket.onerror = function (e) {
