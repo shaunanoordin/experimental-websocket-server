@@ -13,6 +13,10 @@ export class OdysseyEngine {
   constructor(wsServerConfig) {
     this.clients = [];
     this.processCommand = this.processCommand.bind(this);
+    this.cleanupClients = this.cleanupClients.bind(this);
+    //this.handleClientMessage.bind(this);  //This needs to be bound to individual websockets
+    this.handleClientClose = this.handleClientClose.bind(this);
+    this.handleClientError = this.handleClientError.bind(this);
     
     const WebSocketServer = require("ws").Server;
     this.wsServer = new WebSocketServer(wsServerConfig);
@@ -22,17 +26,37 @@ export class OdysseyEngine {
     console.info("WS Server ready on port " + WS_SERVER.PORT);
   }
   
+  cleanupClients() {
+    console.log("CLEANUP");
+    this.clients = this.clients.filter((client) => {
+      if (!client.ws) return false;
+      return client.ws.readyState !== 3;
+    });
+  }
+  
   receiveConnection(ws) {
     console.log("RECEIVED CONNECTION");
     ws.send("Welcome to the Experimental WebSocket Server.");
-    ws.on("message", this.receiveMessage.bind(this, ws));
+    ws.on("message", this.handleClientMessage.bind(this, ws));
+    ws.on("close", this.handleClientClose);
+    ws.on("error", this.handleClientError);
     this.clients.push({ ws });
   }
   
-  receiveMessage(ws, msg) {
-    console.log("RECEIVED MESSAGE: ", msg);
+  handleClientMessage(ws, msg) {
+    console.log("CLIENT MESSAGE: ", msg);
     const response = this.processCommand(msg.trim());
     ws.send(response);
+  }
+  
+  handleClientError(err) {
+    console.log("CLIENT ERROR: ", err);
+    this.cleanupClients();
+  }
+  
+  handleClientClose() {
+    console.log("CLIENT CLOSE");
+    this.cleanupClients();
   }
   
   processCommand(cmd = "") {
