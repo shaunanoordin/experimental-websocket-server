@@ -168,8 +168,14 @@
 	    key: "handleClientMessage",
 	    value: function handleClientMessage(ws, msg) {
 	      console.log("CLIENT MESSAGE: ", msg);
-	      var response = this.processCommand(msg.trim());
-	      ws.send(response);
+	      var client = this.clients.find(function (c) {
+	        return c.ws === ws;
+	      });
+	      if (client) {
+	        this.processCommand(msg.trim(), client);
+	      } else {
+	        console.log("ERROR: Could not determine client.");
+	      }
 	    }
 	  }, {
 	    key: "handleClientError",
@@ -187,19 +193,20 @@
 	    key: "processCommand",
 	    value: function processCommand() {
 	      var cmd = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";
+	      var client = arguments[1];
 
 	      var arrCmd = cmd.replace(/\ +/ig, " ").split(" ");
 
 	      if (cmd === "" || arrCmd.length === 0 || arrCmd[0] === "") {
 	        //No command
-	        return "No command received.";
+	        client.ws.send("No command received.");
+	        return;
 	      } else if (arrCmd[0].match(/^status$/ig)) {
 	        //Status command
 	        var response = "Clients: " + this.clients.length + "\n";
-	        for (var i = 0; i < this.clients.length; i++) {
-	          var client = this.clients[i];
+	        this.clients.map(function (c) {
 	          var readyState = "???";
-	          switch (client.ws.readyState) {
+	          switch (c.ws.readyState) {
 	            case 0:
 	              readyState = "Connecting...";break;
 	            case 1:
@@ -209,12 +216,22 @@
 	            case 3:
 	              readyState = "Disconnected";break;
 	          }
-	          response += "#" + (i + 1) + ": " + readyState + "\n";
-	        }
-	        return response;
-	      }
+	          response += "#: " + readyState + "\n";
+	        });
+	        client.ws.send(response);
+	        return;
+	      } else if (arrCmd[0].match(/^say|shout$/ig)) {
+	        //Say/shout command
 
-	      return "Command not understood: " + cmd;
+	        this.clients.map(function (c) {
+	          if (!(!arrCmd[1] || arrCmd[1] === "")) {
+	            c.ws.send("# said " + arrCmd[1]);
+	          }
+	        });
+	        return;
+	      }
+	      client.ws.send("Command not understood: " + cmd);
+	      return;
 	    }
 	  }, {
 	    key: "handleError",

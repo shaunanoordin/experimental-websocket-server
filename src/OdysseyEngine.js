@@ -45,8 +45,14 @@ export class OdysseyEngine {
   
   handleClientMessage(ws, msg) {
     console.log("CLIENT MESSAGE: ", msg);
-    const response = this.processCommand(msg.trim());
-    ws.send(response);
+    let client = this.clients.find((c) => {
+      return c.ws === ws;
+    });
+    if (client) {
+      this.processCommand(msg.trim(), client);
+    } else {
+      console.log("ERROR: Could not determine client.");
+    }
   }
   
   handleClientError(err) {
@@ -59,28 +65,37 @@ export class OdysseyEngine {
     this.cleanupClients();
   }
   
-  processCommand(cmd = "") {
+  processCommand(cmd = "", client) {
     const arrCmd = cmd.replace(/\ +/ig, " ").split(" ");
     
     if (cmd === "" || arrCmd.length === 0 || arrCmd[0] === "") {  //No command
-      return "No command received.";
+      client.ws.send("No command received.");
+      return;
     } else if (arrCmd[0].match(/^status$/ig)) {  //Status command
       let response = "Clients: " + this.clients.length + "\n";
-      for (let i = 0; i < this.clients.length; i++) {
-        const client = this.clients[i];
+      this.clients.map((c) => {
         let readyState = "???";
-        switch (client.ws.readyState) {
+        switch (c.ws.readyState) {
           case 0: readyState = "Connecting..."; break;
           case 1: readyState = "Connected"; break;
           case 2: readyState = "Disconnecting..."; break;
           case 3: readyState = "Disconnected"; break;
         }
-        response += "#"+(i+1)+": "+readyState+"\n";
-      }
-      return response;
+        response += "#: "+readyState+"\n";
+      });
+      client.ws.send(response);
+      return;
+    } else if (arrCmd[0].match(/^say|shout$/ig)) {  //Say/shout command
+      
+      this.clients.map((c) => {
+        if (!(!arrCmd[1] || arrCmd[1] === "")) {
+          c.ws.send("# said " + arrCmd[1]);
+        }
+      });
+      return;
     }
-    
-    return "Command not understood: " + cmd;
+    client.ws.send("Command not understood: " + cmd);
+    return;
   }
   
   handleError(err) {
