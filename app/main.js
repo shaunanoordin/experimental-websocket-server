@@ -130,12 +130,13 @@
 	  function OdysseyEngine(wsServerConfig) {
 	    _classCallCheck(this, OdysseyEngine);
 
-	    this.sockets = [];
+	    this.clients = [];
 	    this.processCommand = this.processCommand.bind(this);
 
 	    var WebSocketServer = __webpack_require__(2).Server;
 	    this.wsServer = new WebSocketServer(wsServerConfig);
 	    this.wsServer.on("connection", this.receiveConnection.bind(this));
+	    this.wsServer.on("error", this.handleError.bind(this));
 
 	    console.info("WS Server ready on port " + WS_SERVER.PORT);
 	  }
@@ -144,9 +145,9 @@
 	    key: "receiveConnection",
 	    value: function receiveConnection(ws) {
 	      console.log("RECEIVED CONNECTION");
-	      ws.send("Welcome to the WebSocket Server.");
+	      ws.send("Welcome to the Experimental WebSocket Server.");
 	      ws.on("message", this.receiveMessage.bind(this, ws));
-	      this.sockets.push(ws);
+	      this.clients.push({ ws: ws });
 	    }
 	  }, {
 	    key: "receiveMessage",
@@ -160,22 +161,39 @@
 	    value: function processCommand() {
 	      var cmd = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";
 
-	      if (cmd === "") {
+	      var arrCmd = cmd.replace(/\ +/ig, " ").split(" ");
+
+	      if (cmd === "" || arrCmd.length === 0 || arrCmd[0] === "") {
 	        //No command
 	        return "No command received.";
-	      } else if (cmd.match(/status/ig)) {
+	      } else if (arrCmd[0].match(/^status$/ig)) {
 	        //Status command
-	        return "Sockets: " + this.sockets.length;
-	      } else if (!cmd.match(/[^\d\ \+\-\*\/\.]/ig)) {
-	        //Maths command
-	        try {
-	          return "??? Maths functions are out of whack ???";
-	        } catch (err) {
-	          return "Could not parse math command: " + cmd + "\nERROR:" + err;
+	        var response = "Clients: " + this.clients.length + "\n";
+	        for (var i = 0; i < this.clients.length; i++) {
+	          var client = this.clients[i];
+	          var readyState = "???";
+	          switch (client.ws.readyState) {
+	            case 0:
+	              readyState = "Connecting...";break;
+	            case 1:
+	              readyState = "Connected";break;
+	            case 2:
+	              readyState = "Disconnecting...";break;
+	            case 3:
+	              readyState = "Disconnected";break;
+	          }
+	          response += "#" + (i + 1) + ": " + readyState + "\n";
 	        }
+	        return response;
 	      }
 
 	      return "Command not understood: " + cmd;
+	    }
+	  }, {
+	    key: "handleError",
+	    value: function handleError(err) {
+	      console.log("ERROR!");
+	      console.log(err);
 	    }
 	  }]);
 

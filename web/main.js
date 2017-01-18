@@ -16,6 +16,7 @@ var App = function () {
   //----------------------------------------------------------------
   this.output = document.getElementById("output");
   this.input = document.getElementById("input");
+  this.input.focus();
   this.websocket = null;
   this.websocketServerURL = "";
   //----------------------------------------------------------------
@@ -106,6 +107,7 @@ var App = function () {
   
   this.receive = function receive(e) {
     var data = e.data;
+    data = data.replace(/\n/ig, "<br>");
     this.print(data, "remote");
   }.bind(this);
   //----------------------------------------------------------------
