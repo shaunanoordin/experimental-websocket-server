@@ -115,6 +115,11 @@
 	********************************************************************************
 	 */
 
+	var WS_READYSTATE_CONNECTING = 0;
+	var WS_READYSTATE_OPEN = 1;
+	var WS_READYSTATE_CLOSING = 2;
+	var WS_READYSTATE_CLOSED = 3;
+
 	var OdysseyEngine = exports.OdysseyEngine = function () {
 	  function OdysseyEngine(wsServerConfig) {
 	    _classCallCheck(this, OdysseyEngine);
@@ -122,60 +127,66 @@
 	    this.clients = [];
 	    this.processCommand = this.processCommand.bind(this);
 	    this.cleanupClients = this.cleanupClients.bind(this);
+	    this.handleConnection = this.handleConnection.bind(this);
+	    this.handleError = this.handleError.bind(this);
 	    //this.handleClientMessage.bind(this);  //This needs to be bound to individual websockets
-	    this.handleClientClose = this.handleClientClose.bind(this);
-	    this.handleClientError = this.handleClientError.bind(this);
+	    //this.handleClientClose = this.handleClientClose.bind(this);
+	    //this.handleClientError = this.handleClientError.bind(this);
+	    this.send = this.send.bind(this);
+	    this.broadcast = this.broadcast.bind(this);
 
 	    var WebSocketServer = __webpack_require__(2).Server;
 	    this.wsServer = new WebSocketServer(wsServerConfig);
-	    this.wsServer.on("connection", this.receiveConnection.bind(this));
-	    this.wsServer.on("error", this.handleError.bind(this));
+	    this.wsServer.on("connection", this.handleConnection);
+	    this.wsServer.on("error", this.handleError);
 
 	    console.info("WS Server attached to HTTP Server");
 	  }
 
 	  _createClass(OdysseyEngine, [{
-	    key: "cleanupClients",
-	    value: function cleanupClients() {
-	      console.log("CLEANUP");
-	      this.clients = this.clients.filter(function (client) {
-	        if (!client.ws) return false;
-	        return client.ws.readyState !== 3;
-	      });
+	    key: "handleError",
+	    value: function handleError(err) {
+	      console.error("ERROR!");
+	      console.error(err);
 	    }
 	  }, {
-	    key: "receiveConnection",
-	    value: function receiveConnection(ws) {
+	    key: "handleConnection",
+	    value: function handleConnection(ws) {
 	      console.log("RECEIVED CONNECTION");
-	      ws.send("Welcome to the Experimental WebSocket Server.");
-	      ws.on("message", this.handleClientMessage.bind(this, ws));
-	      ws.on("close", this.handleClientClose);
-	      ws.on("error", this.handleClientError);
-	      this.clients.push({ ws: ws });
+	      var nickname = this.generateRandomNickname();
+	      var client = { nickname: nickname, ws: ws };
+	      ws.on("message", this.handleClientMessage.bind(this, client));
+	      ws.on("close", this.handleClientClose.bind(this, client));
+	      ws.on("error", this.handleClientError.bind(this, client));
+	      this.broadcast(nickname + " has joined the server.");
+	      this.clients.push(client);
+	      this.send(client, "Welcome to the Experimental WebSocket Server.\n" + "Your nickname is: " + nickname + "\n" + "Any text you send will be broadcast to everyone on the server.\n" + "Special commands include '!status' and '!rename' ");
 	    }
 	  }, {
 	    key: "handleClientMessage",
-	    value: function handleClientMessage(ws, msg) {
-	      console.log("CLIENT MESSAGE: ", msg);
-	      var client = this.clients.find(function (c) {
-	        return c.ws === ws;
-	      });
+	    value: function handleClientMessage(client, msg) {
 	      if (client) {
+	        console.log("CLIENT MESSAGE: ", msg);
 	        this.processCommand(msg.trim(), client);
 	      } else {
 	        console.error("ERROR: Could not determine client.");
 	      }
 	    }
 	  }, {
-	    key: "handleClientError",
-	    value: function handleClientError(err) {
-	      console.error("CLIENT ERROR: ", err);
+	    key: "handleClientClose",
+	    value: function handleClientClose(client) {
+	      console.log("CLIENT CLOSE");
+	      if (client) {
+	        this.broadcast(client.nickname + " has left the server.");
+	      } else {
+	        this.broadcast("A user has left the server.");
+	      }
 	      this.cleanupClients();
 	    }
 	  }, {
-	    key: "handleClientClose",
-	    value: function handleClientClose() {
-	      console.log("CLIENT CLOSE");
+	    key: "handleClientError",
+	    value: function handleClientError(client, err) {
+	      console.error("CLIENT ERROR: ", err);
 	      this.cleanupClients();
 	    }
 	  }, {
@@ -186,47 +197,87 @@
 
 	      var arrCmd = cmd.replace(/\ +/ig, " ").split(" ");
 
+	      //Basic commands
+	      //----------------------------------------------------------------
 	      if (cmd === "" || arrCmd.length === 0 || arrCmd[0] === "") {
 	        //No command
-	        client.ws.send("No command received.");
+	        this.send(client, "No command received.");
 	        return;
-	      } else if (arrCmd[0].match(/^status$/ig)) {
+	      } else if (!arrCmd[0].match(/^!/ig)) {
+	        //Normal text that doesn't start with an exclamation? Shout it out to everyone!
+
+	        this.broadcast("@" + client.nickname + " said: \"" + cmd + "\"");
+	        return;
+	      }
+	      //----------------------------------------------------------------
+
+	      //Accept special commands
+	      //----------------------------------------------------------------
+	      if (arrCmd[0].match(/^!status$/ig)) {
 	        //Status command
 	        var response = "Clients: " + this.clients.length + "\n";
 	        this.clients.map(function (c) {
 	          var readyState = "???";
 	          switch (c.ws.readyState) {
-	            case 0:
+	            case WS_READYSTATE_CONNECTING:
 	              readyState = "Connecting...";break;
-	            case 1:
+	            case WS_READYSTATE_OPEN:
 	              readyState = "Connected";break;
-	            case 2:
+	            case WS_READYSTATE_CLOSING:
 	              readyState = "Disconnecting...";break;
-	            case 3:
+	            case WS_READYSTATE_CLOSED:
 	              readyState = "Disconnected";break;
 	          }
-	          response += "#: " + readyState + "\n";
+	          response += c.nickname + ": " + readyState + "\n";
 	        });
-	        client.ws.send(response);
-	        return;
-	      } else if (arrCmd[0].match(/^say|shout$/ig)) {
-	        //Say/shout command
-
-	        this.clients.map(function (c) {
-	          if (!(!arrCmd[1] || arrCmd[1] === "")) {
-	            c.ws.send("# said " + arrCmd[1]);
-	          }
-	        });
+	        this.send(client, response);
 	        return;
 	      }
-	      client.ws.send("Command not understood: " + cmd);
+
+	      if (arrCmd[0].match(/^!rename$/ig)) {
+	        //Rename command
+	        var oldNickname = client.nickname;
+	        var newNickname = this.generateRandomNickname();
+	        client.nickname = newNickname;
+	        this.broadcast(oldNickname + " has been renamed to " + newNickname);
+	        return;
+	      }
+
+	      this.send(client, "Unknown command.");
+	      //----------------------------------------------------------------
+	    }
+	  }, {
+	    key: "send",
+	    value: function send(client, msg) {
+	      if (client && client.ws && client.ws.readyState === WS_READYSTATE_OPEN) {
+	        client.ws.send(msg);
+	      }
+	    }
+	  }, {
+	    key: "broadcast",
+	    value: function broadcast(msg) {
+	      var _this = this;
+
+	      this.clients.map(function (client) {
+	        _this.send(client, msg);
+	      });
 	      return;
 	    }
 	  }, {
-	    key: "handleError",
-	    value: function handleError(err) {
-	      console.error("ERROR!");
-	      console.error(err);
+	    key: "cleanupClients",
+	    value: function cleanupClients() {
+	      console.log("CLEANUP");
+	      this.clients = this.clients.filter(function (client) {
+	        if (!client.ws) return false;
+	        return client.ws.readyState !== WS_READYSTATE_CLOSED;
+	      });
+	    }
+	  }, {
+	    key: "generateRandomNickname",
+	    value: function generateRandomNickname() {
+	      var adjectives = ["red", "blue", "gold", "green", "silver", "white", "orange", "purple", "pink", "cold", "hot", "dry", "wet", "rough", "smooth", "normal", "fighting", "flying", "poison", "ground", "rock", "bug", "ghost", "steel", "fire", "water", "grass", "electric", "psychic", "ice", "dragon", "dark", "fairy", "solid", "liquid", "gaseous", "awesome", "mysterious", "confounding"];
+	      var nouns = ["cat", "mouse", "ox", "tiger", "rabbit", "dragon", "snake", "horse", "sheep", "monkey", "rooster", "dog", "boar", "beaver", "oyster", "pearl", "octopus", "spider", "dev", "astronomer", "designer", "analyst", "fighter", "mage", "guardian", "ranger", "witch", "wizard", "rogue"];
+	      return adjectives[Math.floor(Math.random() * adjectives.length)] + "-" + nouns[Math.floor(Math.random() * nouns.length)];
 	    }
 	  }]);
 
