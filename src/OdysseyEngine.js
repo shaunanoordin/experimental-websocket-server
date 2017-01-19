@@ -5,10 +5,6 @@ An experimental engine for handling multiple websocket connections.
 ********************************************************************************
  */
 
-const WS_SERVER = {
-  PORT: (process.env.PORT || 4000)
-};
-
 export class OdysseyEngine {
   constructor(wsServerConfig) {
     this.clients = [];
@@ -23,7 +19,7 @@ export class OdysseyEngine {
     this.wsServer.on("connection", this.receiveConnection.bind(this));
     this.wsServer.on("error", this.handleError.bind(this));
     
-    console.info("WS Server ready on port " + WS_SERVER.PORT);
+    console.info("WS Server ready on port.");
   }
   
   cleanupClients() {
@@ -51,12 +47,12 @@ export class OdysseyEngine {
     if (client) {
       this.processCommand(msg.trim(), client);
     } else {
-      console.log("ERROR: Could not determine client.");
+      console.error("ERROR: Could not determine client.");
     }
   }
   
   handleClientError(err) {
-    console.log("CLIENT ERROR: ", err);
+    console.error("CLIENT ERROR: ", err);
     this.cleanupClients();
   }
   
@@ -99,7 +95,7 @@ export class OdysseyEngine {
   }
   
   handleError(err) {
-    console.log("ERROR!");
-    console.log(err);
+    console.error("ERROR!");
+    console.error(err);
   }
 }

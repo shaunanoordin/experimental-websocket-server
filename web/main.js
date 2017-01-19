@@ -70,14 +70,14 @@ var App = function () {
       }.bind(this);
       this.websocket.onerror = function (e) {
         this.print("ERROR", "local");
-        console.log("ERROR");
-        console.log(e);
+        console.error("ERROR");
+        console.error(e);
       }.bind(this);
       this.websocket.onmessage = this.receive;
     } catch (err) {
       this.print("ERROR: " + err, "local");
-      console.log("ERROR");
-      console.log(e);
+      console.error("ERROR");
+      console.error(e);
       this.websocket = null;
     }
   }.bind(this);

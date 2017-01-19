@@ -12,7 +12,7 @@ import { OdysseyEngine } from "./OdysseyEngine.js";
 //==============================================================================
 var Express = require("express");
 var HTTP_SERVER = {
-  PORT: (process.env.PORT || 3000)
+  PORT: (3000)
 };
 var httpServer = Express();
 
