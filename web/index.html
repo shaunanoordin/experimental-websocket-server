@@ -12,8 +12,15 @@
         <h1>Experimental WebSocket Client</h1>
       </header>
       <main>
-        <output id="output"></output>
-        <input id="input">
+        <output id="output">
+          <p class="local">
+            G'day, mate!<br>
+            <code>/hi</code> connects you to the default WebSocket server.<br>
+            <code>/hi ws://serverURL:port</code> connects you to a specific WS server.<br>
+            <code>/bye</code> disconnects you from a server.
+          </p>
+        </output>
+        <input id="input" placeholder="Type your command here and press Enter">
       </main>
       <footer>2017</footer>
     </div><!--/#app-->
