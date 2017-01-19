@@ -1,32 +1,38 @@
-# Starter JS
+# Experimental WebSocket Server
 
-Starter template for JS projects.
+An experimental server that utilises HTML5 WebSockets to communicate with multiple clients. Includes a free simple WebSocket Client to communicate with the server!
+
+This server is meant to be hosted on Heroku.
 
 ## Development
 
-* This is a web app built on HTML5, JavaScript and CSS.
-* It uses Babel to transpile 'modern' ES6 code into 'current' (2016) JavaScript code.
-* It uses Webpack to bundle JS files together. (Important for making the transpiled ES6 'import' functionality work.)
-* Its also uses Stylus to make writing CSS easier.
-* Developing the web app requires Node.js installed on your machine and a handy command line interface. (Bash, cmd.exe, etc)
-* However, the _compiled_ web app itself can be run simply by opening the `index.html` in a web browser. (Chrome, Firefox, etc)
+* This project has two components:
+  * The main WebSocket **server**
+  * The supporting WebSocket **client**
+* The WS server is developed in ES6, is transpiled into JavaScript using Babel, and runs on Node.
+* The client is a simple standalone JS+HTML5+CSS app.
 
 Project anatomy:
 
-* Source JS (ES6 JavaScript) and STYL (Stylus CSS) files are in the `/src` folder.
-* Compiled JS and CSS files are in the `/app` folder.
-* Media assets are meant to be placed in the `/assets` folder, but this is optional.
-* Entry point is `index.html`.
+* The WebSocket server's source code is stored in `/src` and compiled into `/app`
+* The WebSocket client's code is in `/web`. That's raw code; no compilation is necessary.
+* There is **no** entry point for **users**, as this project is meant to be run as a server.
 
 Starting the project:
 
-1. Install the project dependencies by running `npm install`
+1. Run `npm install` to install project dependencies.
 2. Run `npm start` to start the server.
-3. Open `http://localhost:3000` on your browser to view the app.
+3. The WebSocket server is running quietly on `ws://localhost:4000`
+4. The WebSocket client can be viewed at `http://localhost:3000` or by opening `/web/index.html`.
+  * Note: this meants there are two servers running; the main WS server at port 4000 and a simple web server to serve the client app at port 3000.
 
 Alternatively, there's a developer mode:
 
 1. `npm install`
 2. `npm run dev`
 3. `http://localhost:3000`
-4. Changes to the JS and STYL files will now be compiled automatically; i.e. Babel/Webpack and Stylus now _watch_ the files. Refreshing the browser window should should show the latest edits.
+4. Changes to the WS server's JS code will compiled automatically. Note that this will cause the WS server to restart every time a file is changed.
+
+Deploying on Heroku:
+
+1. TODO
