@@ -10,29 +10,24 @@ import { OdysseyEngine } from "./OdysseyEngine.js";
 
 //HTTP Server for Web Client
 //==============================================================================
-var Express = require("express");
-var HTTP_SERVER = {
-  PORT: (3000)
+const Express = require("express");
+const SERVER = {
+  PORT: (process.env.PORT || 3000)
 };
-var httpServer = Express();
-
-httpServer.use(Express.static("web"));
-
-httpServer.listen(HTTP_SERVER.PORT, function onStart(err) {
+const server = Express()
+.use(Express.static("web"))
+.listen(SERVER.PORT, function onStart(err) {
   if (err) {
     console.log(err);
   } else {
-    console.info("HTTP Server ready on port " + HTTP_SERVER.PORT);
+    console.info("HTTP Server ready on port " + SERVER.PORT);
   }
 });
 //==============================================================================
 
 //WebSocket Server + Odyssey Engine
 //==============================================================================
-var WS_SERVER = {
-  PORT: (process.env.PORT || 4000)
-};
-var odyssey = new OdysseyEngine({ port: WS_SERVER.PORT });
+const odyssey = new OdysseyEngine({ server });
 //==============================================================================
 
 /*  Simple WebSocket code

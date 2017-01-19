@@ -6,7 +6,7 @@ Experimental WebSocket Client
 ********************************************************************************
  */
 
-DEFAULT_WEBSOCKET_URL = "ws://localhost:4000";
+DEFAULT_WEBSOCKET_URL = "ws://localhost:3000";
 
 /*  Primary App Class
  */

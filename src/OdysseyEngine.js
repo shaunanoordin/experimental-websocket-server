@@ -19,7 +19,7 @@ export class OdysseyEngine {
     this.wsServer.on("connection", this.receiveConnection.bind(this));
     this.wsServer.on("error", this.handleError.bind(this));
     
-    console.info("WS Server ready on port.");
+    console.info("WS Server attached to HTTP Server");
   }
   
   cleanupClients() {

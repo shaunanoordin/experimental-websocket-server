@@ -58,28 +58,21 @@
 	                                  ********************************************************************************
 	                                   */
 
-	var HTTP_SERVER = {
+	var SERVER = {
 	  PORT: process.env.PORT || 3000
 	};
-	var httpServer = Express();
-
-	httpServer.use(Express.static("web"));
-
-	httpServer.listen(HTTP_SERVER.PORT, function onStart(err) {
+	var server = Express().use(Express.static("web")).listen(SERVER.PORT, function onStart(err) {
 	  if (err) {
 	    console.log(err);
 	  } else {
-	    console.info("HTTP Server ready on port " + HTTP_SERVER.PORT);
+	    console.info("HTTP Server ready on port " + SERVER.PORT);
 	  }
 	});
 	//==============================================================================
 
 	//WebSocket Server + Odyssey Engine
 	//==============================================================================
-	var WS_SERVER = {
-	  PORT: process.env.PORT || 4000
-	};
-	var odyssey = new _OdysseyEngine.OdysseyEngine({ port: WS_SERVER.PORT });
+	var odyssey = new _OdysseyEngine.OdysseyEngine({ server: server });
 	//==============================================================================
 
 	/*  Simple WebSocket code
@@ -122,10 +115,6 @@
 	********************************************************************************
 	 */
 
-	var WS_SERVER = {
-	  PORT: process.env.PORT || 4000
-	};
-
 	var OdysseyEngine = exports.OdysseyEngine = function () {
 	  function OdysseyEngine(wsServerConfig) {
 	    _classCallCheck(this, OdysseyEngine);
@@ -142,7 +131,7 @@
 	    this.wsServer.on("connection", this.receiveConnection.bind(this));
 	    this.wsServer.on("error", this.handleError.bind(this));
 
-	    console.info("WS Server ready on port " + WS_SERVER.PORT);
+	    console.info("WS Server attached to HTTP Server");
 	  }
 
 	  _createClass(OdysseyEngine, [{
@@ -174,13 +163,13 @@
 	      if (client) {
 	        this.processCommand(msg.trim(), client);
 	      } else {
-	        console.log("ERROR: Could not determine client.");
+	        console.error("ERROR: Could not determine client.");
 	      }
 	    }
 	  }, {
 	    key: "handleClientError",
 	    value: function handleClientError(err) {
-	      console.log("CLIENT ERROR: ", err);
+	      console.error("CLIENT ERROR: ", err);
 	      this.cleanupClients();
 	    }
 	  }, {
@@ -236,8 +225,8 @@
 	  }, {
 	    key: "handleError",
 	    value: function handleError(err) {
-	      console.log("ERROR!");
-	      console.log(err);
+	      console.error("ERROR!");
+	      console.error(err);
 	    }
 	  }]);
 
