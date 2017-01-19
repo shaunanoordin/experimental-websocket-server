@@ -6,6 +6,9 @@ Experimental Websocket Server
 ********************************************************************************
  */
 
+import { OdysseyEngine } from "./OdysseyEngine.js";
+
+//HTTP Server for Web Client
 //==============================================================================
 var Express = require("express");
 var HTTP_SERVER = {
@@ -22,15 +25,24 @@ httpServer.listen(HTTP_SERVER.PORT, function onStart(err) {
     console.info("HTTP Server ready on port " + HTTP_SERVER.PORT);
   }
 });
-
 //==============================================================================
 
+//WebSocket Server + Odyssey Engine
+//==============================================================================
+var WS_SERVER = {
+  PORT: (process.env.PORT || 4000)
+};
+var odyssey = new OdysseyEngine({ port: WS_SERVER.PORT });
+//==============================================================================
+
+/*  Simple WebSocket code
 //==============================================================================
 var WebSocketServer = require("ws").Server;
 var WS_SERVER = {
   PORT: (process.env.PORT || 4000)
 };
 var wsServer = new WebSocketServer({ port: WS_SERVER.PORT });
+var odyssey = new OdysseyEngine();
 
 wsServer.on("connection", (ws) => {
   ws.send("Welcome to the WebSocket Server.");
@@ -39,6 +51,5 @@ wsServer.on("connection", (ws) => {
     ws.send(msg + " " + msg);
   });
 });
-
-console.info("WS Server ready on port " + WS_SERVER.PORT);
 //==============================================================================
+*/

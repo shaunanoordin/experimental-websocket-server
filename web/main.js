@@ -6,66 +6,100 @@ Experimental WebSocket Client
 ********************************************************************************
  */
 
+DEFAULT_WEBSOCKET_URL = "ws://localhost:4000";
+
 /*  Primary App Class
  */
 //==============================================================================
-
 var App = function () {
   //Class Variables
   //----------------------------------------------------------------
   this.output = document.getElementById("output");
   this.input = document.getElementById("input");
+  this.input.focus();
   this.websocket = null;
-  this.websocketServerURL = "ws://localhost:4000";
+  this.websocketServerURL = "";
   //----------------------------------------------------------------
   
   //Command Parser
   //----------------------------------------------------------------
   this.execute = function execute() {
-    var inputValue = this.input.value;
+    var inputValue = this.input.value.trim();
+    var arrInputValues = inputValue.replace(/\ +/ig, " ").split(" ");
     this.input.value = "";
-    this.print("&gt; " + inputValue);
+    this.print(inputValue, "user");
     
-    if (inputValue === "hi") this.connect();
-    else if (inputValue === "bye") this.disconnect();
-    else this.send(inputValue);
+    if (!arrInputValues[0] || arrInputValues[0] === "") return;  //No command? Do nothing.
+    
+    if (arrInputValues[0].match(/^(\/hi|\/connect)$/ig)) {
+      this.connect(arrInputValues[1]);
+    } else if (arrInputValues[0].match(/^(\/bye|\/disconnect)$/ig)) {
+      this.disconnect();
+    } else if (arrInputValues[0].match(/^\//ig)) {
+      this.print("Unknown command", "local");
+    } else {
+      this.send(inputValue);
+    }
   }.bind(this);
   //----------------------------------------------------------------
   
   //WebSocket Interface
   //----------------------------------------------------------------
-  this.connect = function connect() {
+  this.connect = function connect(url) {
+    this.websocketServerURL = (!url || url === "") ? DEFAULT_WEBSOCKET_URL : url;
     if (this.websocket) {
-      this.print("Connection already exists.");
+      switch (this.websocket.readyState) {
+        case 0: this.print("Connection already exists, but not established.", "local"); break;
+        case 1: this.print("Connection already exists.", "local"); break;
+        case 2: this.print("Connection already exists, but is closing.", "local"); break;
+        case 3: this.print("Connection already exists, but has closed.", "local"); break;
+      }
       return;
     }
-    this.websocket = new WebSocket(this.websocketServerURL);
-    this.websocket.onopen = function (e) {
-      this.print("Connected to " + this.websocketServerURL);
-    }.bind(this);
-    this.websocket.onclose = function (e) {
-      this.print("Disconnected from " + this.websocketServerURL);
-      this.websocket = null;
-    }.bind(this);
-    this.websocket.onerror = function (e) {
-      this.print("ERROR");
+    
+    try {
+      this.websocket = new WebSocket(this.websocketServerURL);
+      this.print("Connecting...", "local");
+      this.websocket.onopen = function (e) {
+        this.print("Connected to " + this.websocketServerURL, "local");
+      }.bind(this);
+      this.websocket.onclose = function (e) {
+        this.print("Disconnected from " + this.websocketServerURL, "local");
+        this.websocketServerURL = "";
+        this.websocket = null;
+      }.bind(this);
+      this.websocket.onerror = function (e) {
+        this.print("ERROR", "local");
+        console.log("ERROR");
+        console.log(e);
+      }.bind(this);
+      this.websocket.onmessage = this.receive;
+    } catch (err) {
+      this.print("ERROR: " + err, "local");
       console.log("ERROR");
       console.log(e);
-    }.bind(this);
-    this.websocket.onmessage = this.receive;
+      this.websocket = null;
+    }
   }.bind(this);
   
   this.disconnect = function disconnect() {
     if (!this.websocket) {
-      this.print("No connection to disconnect from.");
+      this.print("No connection to disconnect from.", "local");
+      return;
+    } else {
+      switch (this.websocket.readyState) {
+        case 0: this.print("Connection not yet established.", "local"); break;
+        case 1: this.print("Disconnecting...", "local"); this.websocket.close(); break;
+        case 2: this.print("Disconnection in progress.", "local"); break;
+        case 3: this.print("Already disconnected.", "local"); break;
+      }
       return;
     }
-    this.websocket.close();
   }.bind(this);
   
   this.send = function send(msg) {
     if (!this.websocket) {
-      this.print("No connection.");
+      this.print("No connection.", "local");
       return;
     }
     this.websocket.send(msg);
@@ -73,7 +107,8 @@ var App = function () {
   
   this.receive = function receive(e) {
     var data = e.data;
-    this.print("&lt; " + data);
+    data = data.replace(/\n/ig, "<br>");
+    this.print(data, "remote");
   }.bind(this);
   //----------------------------------------------------------------
   
@@ -90,8 +125,8 @@ var App = function () {
   
   //Misc
   //----------------------------------------------------------------
-  this.print = function print(line)  {
-    this.output.innerHTML += "<p>" + line + "</p>";
+  this.print = function print(line, type)  {
+    this.output.innerHTML += "<p class="+type+">" + line + "</p>";
     this.output.scrollTop = this.output.scrollHeight;
   }.bind(this);
   //----------------------------------------------------------------

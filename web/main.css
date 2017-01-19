@@ -79,6 +79,22 @@ table th {
   padding: 0 0.5em;
 }
 
+#app > main #output .user {
+  color: #999;
+}
+
+#app > main #output .user::before {
+  content: "»";
+}
+
+#app > main #output .local {
+  color: #333;
+}
+
+#app > main #output .remote {
+  color: #369;
+}
+
 #app > main #input {
   flex: 0 0 auto;
   border: 0.2em solid #999;
