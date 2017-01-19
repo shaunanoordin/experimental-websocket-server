@@ -87,6 +87,10 @@ table th {
   content: "»";
 }
 
+#app > main #output code {
+  background: #eee;
+}
+
 #app > main #output .local {
   color: #333;
 }

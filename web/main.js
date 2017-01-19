@@ -107,7 +107,6 @@ var App = function () {
   
   this.receive = function receive(e) {
     var data = e.data;
-    data = data.replace(/\n/ig, "<br>");
     this.print(data, "remote");
   }.bind(this);
   //----------------------------------------------------------------
@@ -126,7 +125,12 @@ var App = function () {
   //Misc
   //----------------------------------------------------------------
   this.print = function print(line, type)  {
-    this.output.innerHTML += "<p class="+type+">" + line + "</p>";
+    var data = line
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\n/ig, "<br>");
+    this.output.innerHTML += "<p class="+type+">" + data + "</p>";
     this.output.scrollTop = this.output.scrollHeight;
   }.bind(this);
   //----------------------------------------------------------------
