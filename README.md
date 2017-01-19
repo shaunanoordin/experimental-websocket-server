@@ -16,7 +16,7 @@ Project anatomy:
 
 * The WebSocket server's source code is stored in `/src` and compiled into `/app`
 * The WebSocket client's code is in `/web`. That's raw code; no compilation is necessary.
-* There is **no** entry point for **users**, as this project is meant to be run as a server.
+* This project is meant to be run as a server.
 
 Starting the project:
 
